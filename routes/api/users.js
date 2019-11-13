@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const secretOrKey = require('../../config/keys').secretOrKey;
 const User = require('../../models/User');
+const validateLoginInput = require('../../validation/login');
+const validateRegisterInput = require('../../validation/register');
 
 router.get('/', (req, res) => {
     res.json('this is the users route');
@@ -21,6 +23,11 @@ router.get('/current', passport.authenticate('jwt', {session: false}), (req, res
 
 router.post('/register', (req, res) => {
     const { handle, password, email } = req.body;
+    const { errors, isValid } = validateRegisterInput(req.body);
+
+    if(!isValid){
+        return res.status(400).json(errors);
+    }
     //see if user already exists
     User.findOne({ email })
     .then( user => {
@@ -63,6 +70,11 @@ router.post('/register', (req, res) => {
 
 router.post('/login', (req, res) => {
     const { password, email } = req.body;
+    const { errors, isValid } = validateLoginInput(req.body);
+
+    if(!isValid){
+        return res.status(400).json(errors);
+    }
     User.findOne( { email } )
     .then( user => {
         if(!user){
